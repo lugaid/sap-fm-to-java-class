@@ -50,19 +50,39 @@ public class Sap2JavaField {
 		this.listSubField = listSubField;
 	}
 
+	/**
+	 * Return SAP parameter name
+	 * 
+	 * @return SAP parameter name
+	 */
 	public String getSapName() {
 		return sapName;
 	}
 
+	/**
+	 * Return JAVA attribute name
+	 * 
+	 * @return JAVA attribute name
+	 */
 	public String getJavaName() {
 		return smallizeFirstChar(titleize(sapName.replaceAll("[-_.]", " "))
 				.replace(" ", ""));
 	}
 
+	/**
+	 * Return SAP data type
+	 * 
+	 * @return SAP data type
+	 */
 	public String getSapType() {
 		return sapType;
 	}
 
+	/**
+	 * Return JAVA data type correspondent to SAP data type
+	 * 
+	 * @return JAVA data type
+	 */
 	public String getJavaType() {
 		if (sapType.equals("STRUCTURE")) {
 			return captalizeFirstChar(getJavaName());
@@ -97,18 +117,38 @@ public class Sap2JavaField {
 		}
 	}
 
+	/**
+	 * Get SAP length
+	 * 
+	 * @return SAP length
+	 */
 	public int getSapLength() {
 		return sapLength;
 	}
 
+	/**
+	 * Get SAP decimals
+	 * 
+	 * @return SAP decimals length
+	 */
 	public int getSapDecimals() {
 		return sapDecimals;
 	}
 
+	/**
+	 * Get sub fields for STRUCTURE and TABLE
+	 * 
+	 * @return Sub fields for STRUCTURE and TABLE
+	 */
 	public List<Sap2JavaField> getListSubField() {
 		return listSubField;
 	}
 
+	/**
+	 * Retur if it is a final type, just STRUCTURE and TABLE is not a final type.
+	 * 
+	 * @return Final type, just STRUCTURE and TABLE is not a final type.
+	 */
 	public boolean isFinalLevel() {
 		return !sapType.equals("STRUCTURE") && !sapType.equals("TABLE");
 	}

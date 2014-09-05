@@ -9,6 +9,12 @@ import com.sap.conn.jco.JCoField;
 import com.sap.conn.jco.JCoParameterList;
 import static br.com.lugaid.helper.StringHelper.captalizeFirstChar;
 
+/**
+ * Class to transform a list of SAP parameter to class file.
+ * 
+ * @author Emerson Rancoletta
+ * @version 1.0
+ */
 public class SapFmParm2JavaClassConverter {
 	private static Logger logger = LoggerFactory
 			.getLogger(SapFmParm2JavaClassConverter.class);
@@ -16,15 +22,32 @@ public class SapFmParm2JavaClassConverter {
 	private String mainClass;
 	private JCoParameterList parmList;
 	
+	/**
+	 * Constructor
+	 * 
+	 * @param mainClass Main class will be concatenated to parameter type to generate class.
+	 * @param parmList SAP parameter list
+	 */
 	public SapFmParm2JavaClassConverter(String mainClass, JCoParameterList parmList) {
 		this.mainClass = mainClass;
 		this.parmList = parmList;
 	}
 
+	/**
+	 * Return class content
+	 * 
+	 * @return Class content
+	 */
 	public String getClassString() {
 		return generateClass(mainClass, mapTypes(parmList.iterator())).toString();
 	}
 
+	/**
+	 * Transform SAP field list to a easy to handle class Sap2JavaField
+	 * 
+	 * @param parmIterator Iterator of SAP fields
+	 * @return List of Sap2JavaField
+	 */
 	private List<Sap2JavaField> mapTypes(Iterator<JCoField> parmIterator) {
 		List<Sap2JavaField> locFields = new ArrayList<>();
 		
@@ -57,6 +80,13 @@ public class SapFmParm2JavaClassConverter {
 		return locFields;
 	}
 
+	/**
+	 * Generate class content
+	 * 
+	 * @param className Class name
+	 * @param fields Fields of parameter
+	 * @return Class content
+	 */
 	private StringBuilder generateClass(String className, List<Sap2JavaField> fields) {
 		StringBuilder sb = new StringBuilder();
 
