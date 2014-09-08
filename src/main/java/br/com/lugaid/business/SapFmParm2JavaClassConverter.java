@@ -1,12 +1,8 @@
 package br.com.lugaid.business;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.sap.conn.jco.JCoField;
 import com.sap.conn.jco.JCoParameterList;
+
 import static br.com.lugaid.helper.StringHelper.captalizeFirstChar;
 
 /**
@@ -16,20 +12,20 @@ import static br.com.lugaid.helper.StringHelper.captalizeFirstChar;
  * @version 1.0
  */
 public class SapFmParm2JavaClassConverter {
-	private static Logger logger = LoggerFactory
-			.getLogger(SapFmParm2JavaClassConverter.class);
-
-	private String mainClass;
+	private String className;
 	private JCoParameterList parmList;
-	
+
 	/**
 	 * Constructor
 	 * 
-	 * @param mainClass Main class will be concatenated to parameter type to generate class.
-	 * @param parmList SAP parameter list
+	 * @param className
+	 *            Class name
+	 * @param parmList
+	 *            SAP parameter list
 	 */
-	public SapFmParm2JavaClassConverter(String mainClass, JCoParameterList parmList) {
-		this.mainClass = mainClass;
+	public SapFmParm2JavaClassConverter(String className,
+			JCoParameterList parmList) {
+		this.className = className;
 		this.parmList = parmList;
 	}
 
@@ -39,62 +35,42 @@ public class SapFmParm2JavaClassConverter {
 	 * @return Class content
 	 */
 	public String getClassString() {
-		return generateClass(mainClass, mapTypes(parmList.iterator())).toString();
-	}
+		StringBuilder sb = new StringBuilder();
 
-	/**
-	 * Transform SAP field list to a easy to handle class Sap2JavaField
-	 * 
-	 * @param parmIterator Iterator of SAP fields
-	 * @return List of Sap2JavaField
-	 */
-	private List<Sap2JavaField> mapTypes(Iterator<JCoField> parmIterator) {
-		List<Sap2JavaField> locFields = new ArrayList<>();
-		
-		while (parmIterator.hasNext()) {
-			JCoField field = parmIterator.next();
+		sb.append("import java.io.Serializable;\n");
+		sb.append("import java.math.BigDecimal;\n");
+		sb.append("import java.util.ArrayList;\n");
+		sb.append("import java.util.Date;\n");
+		sb.append("import java.util.List;\n");
+		sb.append("import com.sap.conn.jco.JCoStructure;\n");
+		sb.append("import com.sap.conn.jco.JCoTable;\n");
 
-			logger.info("Field {} type {} length {} decimal {}.",
-					field.getName(), field.getTypeAsString(),
-					field.getLength(), field.getDecimals());
+		sb.append(generateClass(className,
+				Sap2JavaField.mapTypes(parmList.getFieldIterator())));
 
-			if (field.getTypeAsString().equals("STRUCTURE")) {
-				List<Sap2JavaField> subFields = mapTypes(field.getStructure()
-						.iterator());
-				locFields.add(new Sap2JavaField(field.getName(), field
-						.getTypeAsString(), field.getLength(), field
-						.getDecimals(), subFields));
-			} else if (field.getTypeAsString().equals("TABLE")) {
-				List<Sap2JavaField> subFields = mapTypes(field.getTable()
-						.iterator());
-				locFields.add(new Sap2JavaField(field.getName(), field
-						.getTypeAsString(), field.getLength(), field
-						.getDecimals(), subFields));
-			} else {
-				locFields.add(new Sap2JavaField(field.getName(), field
-						.getTypeAsString(), field.getLength(), field
-						.getDecimals()));
-			}
-		}
-
-		return locFields;
+		return sb.toString();
 	}
 
 	/**
 	 * Generate class content
 	 * 
-	 * @param className Class name
-	 * @param fields Fields of parameter
+	 * @param className
+	 *            Class name
+	 * @param fields
+	 *            Fields of parameter
 	 * @return Class content
 	 */
-	private StringBuilder generateClass(String className, List<Sap2JavaField> fields) {
+	private StringBuilder generateClass(String className,
+			List<Sap2JavaField> fields) {
 		StringBuilder sb = new StringBuilder();
 
-		sb.append(String.format("public class %s implements Serializable {\n", className.trim()));
+		sb.append(String.format("public class %s implements Serializable {\n",
+				className.trim()));
 		sb.append("private static final long serialVersionUID = 337339270983782151L;\n");
 
 		// mount attributes of class
 		for (Sap2JavaField field : fields) {
+			sb.append(String.format("// %s\n", field.getSapDescription()));
 			if (field.getSapType().equals("TABLE")) {
 				sb.append(String.format("private List<%s> %s;\n", field
 						.getJavaType().trim(), field.getJavaName().trim()));
@@ -188,7 +164,7 @@ public class SapFmParm2JavaClassConverter {
 						field.getJavaName(), sbField.getSapName()));
 			} else {
 				sbParm.append(String.format("%s.get%s(\"%s\")",
-						field.getJavaName(), sbField.getJavaType(),
+						field.getJavaName(), sbField.getJCoType(),
 						sbField.getSapName()));
 			}
 		}

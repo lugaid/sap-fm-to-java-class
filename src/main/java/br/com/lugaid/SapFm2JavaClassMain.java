@@ -21,8 +21,9 @@ public class SapFm2JavaClassMain {
 		String functionMod = "";
 		String path = "";
 
-		System.out.println("This program get parameters (Import, Export, Changing and Tables)"
-				+ " from SAP Function Module and transfor to Java Classes.");
+		System.out.println("This program get import parameters"
+				+ " from SAP Function Module and transfor to Java Classes and also genereta a "
+				+ " handler class for easy to handle RFC call from SAP.");
 
 		// Get main class name
 		while (mainClass.isEmpty() || !mainClass.matches(MAIN_CLASS_PAT)) {
@@ -31,9 +32,7 @@ public class SapFm2JavaClassMain {
 							.format("1. Inform the name of the main class this name will be base for generate classes for parameters."
 									+ "\nFor example if you input GetMaterial the names of the genterated classes will be:"
 									+ "\n-GetMaterialImport"
-									+ "\n-GetMaterialExport"
-									+ "\n-GetMaterialChanging"
-									+ "\n-GetMaterialTable"
+									+ "\n-GetMaterialHandler"
 									+ "\nInform the value (must match %s):",
 									MAIN_CLASS_PAT));
 			mainClass = in.nextLine();

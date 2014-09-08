@@ -3,7 +3,7 @@ SAP Function Module Parameters to Java Classes
 
 Purpose
 -------
-Transform the SAP parameters to easy to use in java mainly to handle RFC calls from SAP.
+Transform the SAP parameters to easy to use to handle RFC calls from SAP in JAVA.
 
 Base Requirement
 ----------------

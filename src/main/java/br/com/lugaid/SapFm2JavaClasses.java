@@ -15,6 +15,7 @@ import com.sap.conn.jco.JCoException;
 import com.sap.conn.jco.JCoFunction;
 import com.sap.conn.jco.JCoParameterList;
 
+import br.com.lugaid.business.SapFm2JavaHandlerClassConverter;
 import br.com.lugaid.business.SapFmParm2JavaClassConverter;
 
 /**
@@ -37,9 +38,12 @@ public class SapFm2JavaClasses {
 	/**
 	 * Constructor
 	 * 
-	 * @param mainClass Name of the main class
-	 * @param functionMod SAP Function Module name
-	 * @param path Path to write .java files
+	 * @param mainClass
+	 *            Name of the main class
+	 * @param functionMod
+	 *            SAP Function Module name
+	 * @param path
+	 *            Path to write .java files
 	 */
 	public SapFm2JavaClasses(String mainClass, String functionMod, Path path) {
 		this.mainClass = mainClass;
@@ -59,16 +63,21 @@ public class SapFm2JavaClasses {
 
 		generateImportParamClass();
 
-		generateExportParamClass();
-
-		generateChangingParamClass();
-
-		generateTableParamClass();
+		generateHandlerClass();
+		// For handle call for SAP to java these parameters is not necessary
+		// in the future implementation to generate classes to call SAP FM from
+		// java
+		// this will be used
+		// generateExportParamClass();
+		//
+		// generateChangingParamClass();
+		//
+		// generateTableParamClass();
 	}
 
 	/**
-	 * Connect to SAP via JCoDestination, must exists file SAP_CONNECTION.jcoDestination
-	 * into start directory.
+	 * Connect to SAP via JCoDestination, must exists file
+	 * SAP_CONNECTION.jcoDestination into start directory.
 	 */
 	private void defineJCoDestination() {
 		try {
@@ -85,7 +94,6 @@ public class SapFm2JavaClasses {
 			logger.info("| Language: {}", destination.getLanguage());
 			logger.info("| Sysnr: {}", destination.getSystemNumber());
 			logger.info("| Host: {}", destination.getApplicationServerHost());
-			logger.info("| GatewayService: {}", destination.getGatewayService());
 			logger.info("| RepositoryDestination: {}", DESTINATION_NAME);
 			logger.info("==============================================================");
 
@@ -122,19 +130,43 @@ public class SapFm2JavaClasses {
 
 		generateParamClass("Import", parmList);
 	}
-	
+
+	/**
+	 * Generate .java file for Import parameters of function module.
+	 */
+	private void generateHandlerClass() {
+		JCoParameterList parmList = function.getImportParameterList();
+
+		String className = mainClass.concat("Handler");
+		String importClass = mainClass.concat("Import");
+
+		logger.info("Starting generation class for {} of {} FM.", className,
+				functionMod);
+
+		if (parmList != null && parmList.getFieldCount() > 0) {
+			writeClassFile(className, new SapFm2JavaHandlerClassConverter(
+					className, importClass, parmList).getClassString());
+		} else {
+			logger.info(
+					"Import parameter list for FM {} is blank, class will not be generated.",
+					functionMod);
+		}
+	}
+
 	/**
 	 * Generate .java file for Export parameters of function module.
 	 */
+	@SuppressWarnings("unused")
 	private void generateExportParamClass() {
 		JCoParameterList parmList = function.getExportParameterList();
 
 		generateParamClass("Export", parmList);
 	}
-	
+
 	/**
 	 * Generate .java file for Changing parameters of function module.
 	 */
+	@SuppressWarnings("unused")
 	private void generateChangingParamClass() {
 		JCoParameterList parmList = function.getChangingParameterList();
 
@@ -144,12 +176,13 @@ public class SapFm2JavaClasses {
 	/**
 	 * Generate .java file for Table parameters of function module.
 	 */
+	@SuppressWarnings("unused")
 	private void generateTableParamClass() {
 		JCoParameterList parmList = function.getTableParameterList();
 
 		generateParamClass("Table", parmList);
 	}
-	
+
 	/**
 	 * Generic generator of .java file for parameters of function module.
 	 */
@@ -172,8 +205,10 @@ public class SapFm2JavaClasses {
 	/**
 	 * Write class into disk.
 	 * 
-	 * @param className Name of the class
-	 * @param fileContent Content of the class
+	 * @param className
+	 *            Name of the class
+	 * @param fileContent
+	 *            Content of the class
 	 */
 	private void writeClassFile(String className, String fileContent) {
 		Path pathFile = FileSystems.getDefault().getPath(path.toString(),
