@@ -1,0 +1,28 @@
+import com.sap.conn.jco.AbapClassException;
+import com.sap.conn.jco.AbapException;
+import com.sap.conn.jco.JCoFunction;
+import com.sap.conn.jco.JCoParameterList;
+import com.sap.conn.jco.JCoStructure;
+import com.sap.conn.jco.JCoTable;
+import com.sap.conn.jco.server.DefaultServerHandlerFactory;
+import com.sap.conn.jco.server.JCoServer;
+import com.sap.conn.jco.server.JCoServerContext;
+import com.sap.conn.jco.server.JCoServerFunctionHandler;
+
+public class {{handlerClassName}} implements JCoServerFunctionHandler {
+	@Override
+	public void handleRequest(JCoServerContext serverContext,
+			JCoFunction function) throws AbapException, AbapClassException {
+			
+	{{#hasImportParameters}}
+		{{importClassName}} {{importObjectName}} = new {{importClassName}}(function.getImportParameterList());
+	{{/hasImportParameters}}
+	{{#hasChangingParameters}}
+		{{changingClassName}} {{changingObjectName}} = new {{changingClassName}}(function.getChangingParameterList());
+	{{/hasChangingParameters}}
+	{{#hasTableParameters}}
+		{{tableClassName}} {{tableObjectName}} = new {{tableClassName}}(function.getTableParameterList());
+	{{/hasTableParameters}}
+	
+	}
+}

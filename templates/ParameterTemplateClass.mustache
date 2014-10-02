@@ -1,0 +1,103 @@
+public class {{paramClassName}} implements Serializable {
+	private static final long serialVersionUID = 337339270983782151L;
+{{! build class attributes }}
+{{#fields}}
+	//{{sapDescription}}
+	private {{{javaAttributeType}}} {{javaAttributeName}};
+{{/fields}}
+
+{{! build constructor }}
+{{^parentField}}   {{! main class contructor}}
+	public {{paramClassName}}(JCoParameterList jcoParam) {
+		fillClassAttributes(jcoParam);
+	}
+{{/parentField}}
+{{#parentField}}   {{! sub classes contructor}}
+{{#isStructure}}
+	public {{paramClassName}}(JCoStructure jcoParam) {
+		fillClassAttributes(jcoParam);
+	}
+{{/isStructure}}
+{{#isTable}}
+	public {{paramClassName}}(JCoTable jcoParam) {
+		fillClassAttributes(jcoParam);
+	}
+{{/isTable}}
+{{/parentField}}
+
+{{! build class getters and setters }}
+{{#fields}}
+	public void set{{getterSetterName}}({{{javaAttributeType}}} {{javaAttributeName}}) {
+		this.{{{javaAttributeName}}} = {{javaAttributeName}};
+	}
+	
+	public {{{javaAttributeType}}} get{{getterSetterName}}() {
+		return this.{{javaAttributeName}};
+	}
+{{/fields}}
+
+{{! build fillClassAttributes }}
+{{^parentField}}   {{! main class contructor}}
+	public void fillClassAttributes(JCoParameterList jcoParam) {
+{{/parentField}}
+{{#parentField}}   {{! sub classes contructor}}
+{{#isStructure}}
+	public void fillClassAttributes(JCoStructure jcoParam) {
+{{/isStructure}}
+{{#isTable}}
+	public void fillClassAttributes(JCoTable jcoParam) {
+{{/isTable}}
+{{/parentField}}
+	{{#fields}}
+	{{#isStructure}}
+		this.{{javaAttributeName}} = new {{javaClassName}}(jcoParam.get{{JCoReturnType}}("{{sapName}}"));
+	{{/isStructure}}
+	{{#isTable}}
+		this.{{javaAttributeName}} = new ArrayList<>();
+		JCoTable jco{{javaClassName}} = jcoParam.get{{JCoReturnType}}("{{sapName}}");
+		jco{{javaClassName}}.firstRow();
+		for (int i = 0; i < jco{{javaClassName}}.getNumRows(); jco{{javaClassName}}.nextRow()) {
+			this.{{javaAttributeName}}.add(new {{javaClassName}}(jco{{javaClassName}}));
+			i++;
+		}
+	{{/isTable}}
+	{{#isFinalLevel}}
+		this.{{javaAttributeName}} = jcoParam.get{{JCoReturnType}}("{{sapName}}");
+	{{/isFinalLevel}}
+	{{/fields}}
+	}
+	
+{{! build fillJCoParameter }}
+{{^parentField}}   {{! main class contructor}}
+	public void fillJCoParameter(JCoParameterList jcoParam) {
+{{/parentField}}
+{{#parentField}}   {{! sub classes contructor}}
+{{#isStructure}}
+	public void fillJCoParameter(JCoStructure jcoParam) {
+{{/isStructure}}
+{{#isTable}}
+	public void fillJCoParameter(JCoTable jcoParam) {
+{{/isTable}}
+{{/parentField}}
+		jcoParam.clear();
+	{{#fields}}
+	{{#isStructure}}
+		JCoStructure jco{{javaClassName}} = jcoParam.get{{JCoReturnType}}("{{sapName}}");
+		this.{{javaAttributeName}}.fillJCoParameter(jco{{javaClassName}});
+	{{/isStructure}}
+	{{#isTable}}
+		JCoTable jco{{javaClassName}} = jcoParam.get{{JCoReturnType}}("{{sapName}}");
+		jco{{javaClassName}}.clear();
+		for ({{javaClassName}} item : this.{{javaAttributeName}}) {
+			item.fillJCoParameter(jco{{javaClassName}});
+			jco{{javaClassName}}.appendRow();
+		}
+	{{/isTable}}
+	{{#isFinalLevel}}
+		jcoParam.setValue("{{sapName}}", this.{{javaAttributeName}});
+	{{/isFinalLevel}}
+	{{/fields}}
+	}
+	
+	{{{subClasses}}}
+}

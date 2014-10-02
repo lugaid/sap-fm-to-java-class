@@ -1,7 +1,6 @@
 package br.com.lugaid;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
@@ -9,14 +8,17 @@ import java.nio.file.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sap.conn.jco.JCo;
 import com.sap.conn.jco.JCoDestination;
 import com.sap.conn.jco.JCoDestinationManager;
 import com.sap.conn.jco.JCoException;
 import com.sap.conn.jco.JCoFunction;
 import com.sap.conn.jco.JCoParameterList;
 
-import br.com.lugaid.business.SapFm2JavaHandlerClassConverter;
-import br.com.lugaid.business.SapFmParm2JavaClassConverter;
+import br.com.lugaid.business.CallerClassGenerator;
+import br.com.lugaid.business.HandlerClassGenerator;
+import br.com.lugaid.business.ParameterClassGenerator;
+import br.com.lugaid.business.Sap2JavaField;
 
 /**
  * Class that create .java files for SAP Function Mocules
@@ -29,9 +31,21 @@ public class SapFm2JavaClasses {
 			.getLogger(SapFm2JavaClasses.class);
 	private static final String DESTINATION_NAME = "SAP_CONNECTION";
 
-	private String mainClass;
 	private String functionMod;
+	private String mainClass;
 	private Path path;
+
+	private String importClassName;
+	private String exportClassName;
+	private String changingClassName;
+	private String tableClassName;
+	private JCoParameterList importParmList;
+	private JCoParameterList exportParmList;
+	private JCoParameterList changingParmList;
+	private JCoParameterList tableParmList;
+	private String handlerClassName;
+	private String callerClassName;
+
 	private JCoDestination destination;
 	private JCoFunction function;
 
@@ -63,16 +77,15 @@ public class SapFm2JavaClasses {
 
 		generateImportParamClass();
 
+		generateExportParamClass();
+
+		generateChangingParamClass();
+
+		generateTableParamClass();
+
 		generateHandlerClass();
-		// For handle call for SAP to java these parameters is not necessary
-		// in the future implementation to generate classes to call SAP FM from
-		// java
-		// this will be used
-		// generateExportParamClass();
-		//
-		// generateChangingParamClass();
-		//
-		// generateTableParamClass();
+
+		generateCallerClass();
 	}
 
 	/**
@@ -82,6 +95,10 @@ public class SapFm2JavaClasses {
 	private void defineJCoDestination() {
 		try {
 			logger.info("Starting connection to SAP.");
+
+			logger.info("Setting JCo loggin level to 10.");
+
+			JCo.setTrace(10, "logs/");
 
 			JCoDestination destination = JCoDestinationManager
 					.getDestination(DESTINATION_NAME);
@@ -96,6 +113,7 @@ public class SapFm2JavaClasses {
 			logger.info("| Host: {}", destination.getApplicationServerHost());
 			logger.info("| RepositoryDestination: {}", DESTINATION_NAME);
 			logger.info("==============================================================");
+			logger.info("Setting JCo loggin level to 10.");
 
 			this.destination = destination;
 		} catch (JCoException e) {
@@ -126,126 +144,127 @@ public class SapFm2JavaClasses {
 	 * Generate .java file for Import parameters of function module.
 	 */
 	private void generateImportParamClass() {
-		JCoParameterList parmList = function.getImportParameterList();
+		importClassName = mainClass.concat("Import");
 
-		generateParamClass("Import", parmList);
-	}
+		importParmList = function.getImportParameterList();
 
-	/**
-	 * Generate .java file for Import parameters of function module.
-	 */
-	private void generateHandlerClass() {
-		JCoParameterList parmList = function.getImportParameterList();
-
-		String className = mainClass.concat("Handler");
-		String importClass = mainClass.concat("Import");
-
-		logger.info("Starting generation class for {} of {} FM.", className,
-				functionMod);
-
-		if (parmList != null && parmList.getFieldCount() > 0) {
-			writeClassFile(className, new SapFm2JavaHandlerClassConverter(
-					className, importClass, parmList).getClassString());
-		} else {
-			logger.info(
-					"Import parameter list for FM {} is blank, class will not be generated.",
-					functionMod);
-		}
+		generateParamClass(importClassName, importParmList);
 	}
 
 	/**
 	 * Generate .java file for Export parameters of function module.
 	 */
-	@SuppressWarnings("unused")
 	private void generateExportParamClass() {
-		JCoParameterList parmList = function.getExportParameterList();
+		exportClassName = mainClass.concat("Export");
 
-		generateParamClass("Export", parmList);
+		exportParmList = function.getExportParameterList();
+
+		generateParamClass(exportClassName, exportParmList);
 	}
 
 	/**
 	 * Generate .java file for Changing parameters of function module.
 	 */
-	@SuppressWarnings("unused")
 	private void generateChangingParamClass() {
-		JCoParameterList parmList = function.getChangingParameterList();
+		changingClassName = mainClass.concat("Changing");
 
-		generateParamClass("Changing", parmList);
+		changingParmList = function.getChangingParameterList();
+
+		generateParamClass(changingClassName, changingParmList);
 	}
 
 	/**
 	 * Generate .java file for Table parameters of function module.
 	 */
-	@SuppressWarnings("unused")
 	private void generateTableParamClass() {
-		JCoParameterList parmList = function.getTableParameterList();
+		tableClassName = mainClass.concat("Table");
 
-		generateParamClass("Table", parmList);
+		tableParmList = function.getTableParameterList();
+
+		generateParamClass(tableClassName, tableParmList);
+	}
+
+	/**
+	 * Generate .java file for Handler class.
+	 */
+	private void generateHandlerClass() {
+		handlerClassName = mainClass.concat("Handler");
+
+		Path pathFile = FileSystems.getDefault().getPath(path.toString(),
+				handlerClassName.concat(".java"));
+
+		logger.info("Handler class path {}.", pathFile.toString());
+
+		try {
+			FileWriter fileWriter = new FileWriter(pathFile.toFile());
+
+			HandlerClassGenerator handlerClassGenerator = new HandlerClassGenerator(
+					functionMod, mainClass, handlerClassName, importClassName,
+					exportClassName, changingClassName, tableClassName,
+					importParmList, exportParmList, changingParmList,
+					tableParmList);
+
+			handlerClassGenerator.writeClassFile(fileWriter);
+		} catch (IOException e) {
+			logger.error("Error writting Caller class.");
+			logger.debug("Stack trace ", e);
+		}
+	}
+
+	/**
+	 * Generate .java file for Caller class.
+	 */
+	private void generateCallerClass() {
+		callerClassName = mainClass.concat("Caller");
+
+		Path pathFile = FileSystems.getDefault().getPath(path.toString(),
+				callerClassName.concat(".java"));
+
+		logger.info("Caller class path {}.", pathFile.toString());
+
+		try {
+			FileWriter fileWriter = new FileWriter(pathFile.toFile());
+
+			CallerClassGenerator callerClassGenerator = new CallerClassGenerator(
+					functionMod, mainClass, callerClassName, importClassName,
+					exportClassName, changingClassName, tableClassName,
+					importParmList, exportParmList, changingParmList,
+					tableParmList);
+
+			callerClassGenerator.writeClassFile(fileWriter);
+		} catch (IOException e) {
+			logger.error("Error writting Caller class.");
+			logger.debug("Stack trace ", e);
+		}
 	}
 
 	/**
 	 * Generic generator of .java file for parameters of function module.
 	 */
-	private void generateParamClass(String typeParam, JCoParameterList parmList) {
-		String className = mainClass.concat(typeParam);
-
-		logger.info("Starting generation class for {} of {} FM.", className,
-				functionMod);
-
+	private void generateParamClass(String className, JCoParameterList parmList) {
 		if (parmList != null && parmList.getFieldCount() > 0) {
-			writeClassFile(className, new SapFmParm2JavaClassConverter(
-					className, parmList).getClassString());
+			logger.info("Starting generation class {} for {} FM.", className,
+					functionMod);
+
+			Path pathFile = FileSystems.getDefault().getPath(path.toString(),
+					className.concat(".java"));
+
+			try {
+				FileWriter fileWriter = new FileWriter(pathFile.toFile());
+
+				ParameterClassGenerator parameterClassGenerator = new ParameterClassGenerator(
+						className, Sap2JavaField.mapTypes(parmList
+								.getFieldIterator()));
+
+				parameterClassGenerator.writeClassFile(fileWriter);
+			} catch (IOException e) {
+				logger.error("Error writting Caller class.");
+				logger.debug("Stack trace ", e);
+			}
 		} else {
 			logger.info(
-					"{} parameter list for FM {} is blank, class will not be generated.",
-					typeParam, functionMod);
-		}
-	}
-
-	/**
-	 * Write class into disk.
-	 * 
-	 * @param className
-	 *            Name of the class
-	 * @param fileContent
-	 *            Content of the class
-	 */
-	private void writeClassFile(String className, String fileContent) {
-		Path pathFile = FileSystems.getDefault().getPath(path.toString(),
-				className.concat(".java"));
-		logger.info("Writting file {}.", pathFile.toString());
-
-		FileOutputStream fop = null;
-		File file = pathFile.toFile();
-
-		try {
-			fop = new FileOutputStream(file);
-
-			// if file doesnt exists, then create it
-			if (!file.exists()) {
-				file.createNewFile();
-			}
-
-			// get the content in bytes
-			byte[] contentInBytes = fileContent.getBytes();
-
-			fop.write(contentInBytes);
-			fop.flush();
-			fop.close();
-		} catch (IOException e) {
-			logger.error("Error on write file {}.", pathFile.toString());
-			logger.debug("Stack trace ", e);
-			throw new IllegalStateException("Exiting system.", e);
-		} finally {
-			try {
-				if (fop != null) {
-					fop.close();
-				}
-			} catch (IOException e) {
-				logger.error("Error on close file {}.", pathFile.toString());
-				logger.debug("Stack trace ", e);
-				throw new IllegalStateException("Exiting system.", e);
-			}
+					"Parameter list for FM {} is blank, class {} will not be generated.",
+					functionMod, className);
 		}
 	}
 }

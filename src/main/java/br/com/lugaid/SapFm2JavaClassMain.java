@@ -21,9 +21,12 @@ public class SapFm2JavaClassMain {
 		String functionMod = "";
 		String path = "";
 
-		System.out.println("This program get import parameters"
-				+ " from SAP Function Module and transfor to Java Classes and also genereta a "
-				+ " handler class for easy to handle RFC call from SAP.");
+		System.out.println("The purpose of this program is create a easy to "
+				+ "use way to handle RFC call from SAP an also call SAP "
+				+ "function modules. The program get SAP function modules "
+				+ "parameters and transform to JAVA classes and also generate "
+				+ "classes to handle RFC calls from SAP and to call SAP "
+				+ "function module from JAVA.");
 
 		// Get main class name
 		while (mainClass.isEmpty() || !mainClass.matches(MAIN_CLASS_PAT)) {
@@ -32,7 +35,11 @@ public class SapFm2JavaClassMain {
 							.format("1. Inform the name of the main class this name will be base for generate classes for parameters."
 									+ "\nFor example if you input GetMaterial the names of the genterated classes will be:"
 									+ "\n-GetMaterialImport"
+									+ "\n-GetMaterialExport"
+									+ "\n-GetMaterialChanging"
+									+ "\n-GetMaterialTable"
 									+ "\n-GetMaterialHandler"
+									+ "\n-GetMaterialCaller"
 									+ "\nInform the value (must match %s):",
 									MAIN_CLASS_PAT));
 			mainClass = in.nextLine();
@@ -45,18 +52,21 @@ public class SapFm2JavaClassMain {
 			functionMod = in.nextLine();
 			functionMod = functionMod.trim().toUpperCase();
 		}
-		
+
 		// Get path to write classes files
-		while (path.isEmpty() || !Files.exists(FileSystems.getDefault().getPath(path))) {
-			System.out.println("3. Input the path to generate classes files (path must exists):");
+		while (path.isEmpty()
+				|| !Files.exists(FileSystems.getDefault().getPath(path))) {
+			System.out
+					.println("3. Input the path to generate classes files (path must exists):");
 
 			path = in.nextLine();
 		}
-		
+
 		in.close();
 
 		// Call class to generate classes
-		SapFm2JavaClasses sapfm = new SapFm2JavaClasses(mainClass, functionMod, FileSystems.getDefault().getPath(path));
+		SapFm2JavaClasses sapfm = new SapFm2JavaClasses(mainClass, functionMod,
+				FileSystems.getDefault().getPath(path));
 		sapfm.generateClasses();
 	}
 

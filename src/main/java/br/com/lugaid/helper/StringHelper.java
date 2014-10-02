@@ -8,7 +8,7 @@ package br.com.lugaid.helper;
  */
 public class StringHelper {
 	/**
-	 * Capitalizes all the words
+	 * Capitalizes all words
 	 * 
 	 * @param givenString String to be fomatted
 	 * @return Fomatted string

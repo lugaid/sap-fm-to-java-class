@@ -1,0 +1,45 @@
+import com.sap.conn.jco.JCoDestination;
+import com.sap.conn.jco.JCoException;
+import com.sap.conn.jco.JCoFunction;
+
+public class {{callerClassName}} {
+	private static final String FM_NAME = "{{functionMod}}";
+	private JCoDestination destination;
+
+	public {{callerClassName}}(JCoDestination destination) {
+		this.destination = destination;
+	}
+
+	public boolean callFunctionModule({{{buildCallerParameter}}}) {
+		try {
+			JCoFunction function = destination.getRepository().getFunction(
+					FM_NAME);
+
+		{{#hasImportParameters}}
+			{{importObjectName}}.fillJCoParameter(function.getImportParameterList());
+		{{/hasImportParameters}}
+		{{#hasChangingParameters}}
+			{{changingObjectName}}.fillJCoParameter(function.getChangingParameterList());
+		{{/hasChangingParameters}}
+		{{#hasTableParameters}}
+			{{tableObjectName}}.fillJCoParameter(function.getTableParameterList());
+		{{/hasTableParameters}}
+		
+			function.execute(destination);
+
+		{{#hasExportParameters}}
+			{{exportObjectName}}.fillClassAttributes(function.getExportParameterList());
+		{{/hasExportParameters}}
+		{{#hasChangingParameters}}
+			{{changingObjectName}}.fillClassAttributes(function.getChangingParameterList());
+		{{/hasChangingParameters}}
+		{{#hasTableParameters}}
+			{{tableObjectName}}.fillClassAttributes(function.getTableParameterList());
+		{{/hasTableParameters}}
+			return true;
+		} catch (JCoException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+}
