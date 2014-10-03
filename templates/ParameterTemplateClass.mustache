@@ -1,4 +1,9 @@
+{{^parentField}}
 public class {{paramClassName}} implements Serializable {
+{{/parentField}}
+{{#parentField}}
+public static class {{paramClassName}} implements Serializable {
+{{/parentField}}
 	private static final long serialVersionUID = 337339270983782151L;
 {{! build class attributes }}
 {{#fields}}
@@ -6,7 +11,14 @@ public class {{paramClassName}} implements Serializable {
 	private {{{javaAttributeType}}} {{javaAttributeName}};
 {{/fields}}
 
-{{! build constructor }}
+{{! build constructor}}
+	public {{paramClassName}} ({{{construcParams}}}) {
+	{{#fields}}
+		this.{{javaAttributeName}} = {{javaAttributeName}};
+	{{/fields}}
+	}
+
+{{! build constructor for jco }}
 {{^parentField}}   {{! main class contructor}}
 	public {{paramClassName}}(JCoParameterList jcoParam) {
 		fillClassAttributes(jcoParam);

@@ -15,6 +15,12 @@ import com.sap.conn.jco.JCoParameterList;
 
 import static br.com.lugaid.helper.StringHelper.smallizeFirstChar;
 
+/**
+ * Class to generate Caller class file
+ * 
+ * @author Emerson Rancoletta
+ * @version = 1.0
+ */
 public class CallerClassGenerator {
 	private static Logger logger = LoggerFactory
 			.getLogger(CallerClassGenerator.class);
@@ -192,9 +198,9 @@ public class CallerClassGenerator {
 			sb.append(String.format("%s %s,", getTableClassName(),
 					tableObjectName()));
 		}
-		
+
 		Splitter splitter = Splitter.on(',').omitEmptyStrings().trimResults();
-	    Joiner joiner = Joiner.on(',').skipNulls();
+		Joiner joiner = Joiner.on(',').skipNulls();
 
 		return joiner.join(splitter.split(sb.toString()));
 	}

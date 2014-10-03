@@ -11,7 +11,15 @@ import org.slf4j.LoggerFactory;
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 
+/**
+ * Class to generate SAP function module parameter class file
+ * 
+ * @author Emerson Rancoletta
+ * @version = 1.0
+ */
 public class ParameterClassGenerator {
 	private static Logger logger = LoggerFactory
 			.getLogger(HandlerClassGenerator.class);
@@ -55,6 +63,20 @@ public class ParameterClassGenerator {
 		this.parentField = parentField;
 	}
 
+	public String construcParams() {
+		StringBuffer sb = new StringBuffer();
+
+		for (Sap2JavaField field : fields) {
+			sb.append(String.format("%s %s,", field.getJavaAttributeType(),
+					field.getJavaAttributeName()));
+		}
+
+		Splitter splitter = Splitter.on(',').omitEmptyStrings().trimResults();
+		Joiner joiner = Joiner.on(',').skipNulls();
+
+		return joiner.join(splitter.split(sb.toString()));
+	}
+
 	public boolean writeClassFile(FileWriter fileWriter) {
 		logger.info("Writting Handler class.");
 
@@ -78,7 +100,7 @@ public class ParameterClassGenerator {
 				ParameterClassGenerator subClass = new ParameterClassGenerator(
 						field.getJavaClassName(), field.getListSubField(),
 						field);
-				
+
 				sb.append(subClass.getClassContent());
 			}
 		}
@@ -91,7 +113,8 @@ public class ParameterClassGenerator {
 
 		StringWriter sw = new StringWriter();
 		MustacheFactory mf = new DefaultMustacheFactory();
-		Mustache mustache = mf.compile("templates/ParameterTemplateClass.mustache");
+		Mustache mustache = mf
+				.compile("templates/ParameterTemplateClass.mustache");
 		try {
 			mustache.execute(sw, this).flush();
 			return sw.toString();

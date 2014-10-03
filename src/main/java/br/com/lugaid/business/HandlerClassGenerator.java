@@ -1,6 +1,7 @@
 package br.com.lugaid.business;
 
 import java.io.FileWriter;
+
 import java.io.IOException;
 
 import org.slf4j.Logger;
@@ -12,6 +13,12 @@ import com.github.mustachejava.MustacheFactory;
 import com.sap.conn.jco.JCoParameterList;
 import static br.com.lugaid.helper.StringHelper.smallizeFirstChar;
 
+/**
+ * Class to generate Handler class file
+ * 
+ * @author Emerson Rancoletta
+ * @version = 1.0
+ */
 public class HandlerClassGenerator {
 	private static Logger logger = LoggerFactory
 			.getLogger(HandlerClassGenerator.class);

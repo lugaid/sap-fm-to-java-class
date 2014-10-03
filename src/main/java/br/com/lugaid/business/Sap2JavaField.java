@@ -100,7 +100,7 @@ public class Sap2JavaField {
 
 		return javaName;
 	}
-	
+
 	/**
 	 * Return JAVA name for naming getters and setters.
 	 * 
@@ -109,7 +109,7 @@ public class Sap2JavaField {
 	public String getGetterSetterName() {
 		return captalizeFirstChar(getJavaAttributeName());
 	}
-	
+
 	/**
 	 * Return SAP data type
 	 * 
@@ -126,15 +126,15 @@ public class Sap2JavaField {
 	 */
 	public String getJavaAttributeType() {
 		String type = "";
-		
+
 		if (this.isStructure() || this.isTable()) {
 			type = captalizeFirstChar(titleize(sapName.replaceAll("[-_.]", " "))
 					.replace(" ", ""));
-			
+
 			if (this.isTable()) {
 				type = "List<".concat(type).concat(">");
 			}
-			
+
 		} else {
 			switch (sapType) {
 			case "CHAR":
@@ -163,10 +163,10 @@ public class Sap2JavaField {
 				break;
 			}
 		}
-		
+
 		return type;
 	}
-	
+
 	/**
 	 * Return Java class related to this field
 	 * 
@@ -236,7 +236,7 @@ public class Sap2JavaField {
 	public boolean isFinalLevel() {
 		return !sapType.equals("STRUCTURE") && !sapType.equals("TABLE");
 	}
-	
+
 	/**
 	 * Return if it is a STRUCTURE type.
 	 * 
@@ -245,7 +245,7 @@ public class Sap2JavaField {
 	public boolean isStructure() {
 		return sapType.equals("STRUCTURE");
 	}
-	
+
 	/**
 	 * Return if it is a TABLE type.
 	 * 
